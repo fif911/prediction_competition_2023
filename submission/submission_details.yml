@@ -1,0 +1,12 @@
+team: # Replace me with a team name. Example: team: views
+short_title: # Replace me with a short title. Example: short_title: A Poisson distributed forecast from ViEWS point-prediction model
+even_shorter_identifier: # Replace me with an even shorter identifier. Example: even_shorter_identifier: views_poisson
+authors:
+    - name: # Replace me with first author's name. (note the - for each entry). Example: name: Håvard Hegre 
+      affil: # Replace me with first author's affiliation. Example: affil: PRIO
+    - name: # Replace me with second author's name. (note the - for each entry). Example: name: Jonas Vestby
+      affil: # Replace me with second author's affiliation. Example: affil: PRIO
+    - name: # Fill in as many as you need, and remove those you do not need.
+contact: # Replace me with a contact email. Example: contact: jonves@prio.org
+
+

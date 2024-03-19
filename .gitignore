@@ -13,7 +13,11 @@ memos/
 exploration_pickle/
 Untitled.ipynb 
 
+*.csv
+*.pdf
+*.parquet
 
+.idea
 
 # ignore this irrelevant HH file...
 Data_for_Idris.ipynb
