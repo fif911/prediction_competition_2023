@@ -1,3 +1,4 @@
+#  python evaluate_submissions.py -s ./submission -a ./actuals -e 1000 -t cm
 from pathlib import Path
 from CompetitionEvaluation import structure_data, calculate_metrics
 from utilities import list_submissions, get_target_data, TargetType
@@ -10,12 +11,12 @@ import argparse
 import pandas as pd
 import pyarrow
 
-import logging
-
-logging.getLogger(__name__)
-logging.basicConfig(
-    filename="evaluate_submission.log", encoding="utf-8", level=logging.INFO
-)
+# import logging
+#
+# logging.getLogger(__name__)
+# logging.basicConfig(
+#     filename="evaluate_submission.log", encoding="utf-8", level=logging.DEBUG
+# )
 
 
 def evaluate_forecast(
@@ -46,20 +47,22 @@ def evaluate_forecast(
         unit = "country_id"
     else:
         raise ValueError(f'Target {target} must be either "pgm" or "cm".')
-
+    print("structure_data")
     # Cast to xarray
     observed, predictions = structure_data(
         actuals, forecast, draw_column_name=draw_column, data_column_name=data_column
     )
 
+
     if bool((predictions["outcome"] > 10e9).any()):
-        logging.warning(
+        print(
             f"Found predictions larger than earth population. These are censored at 10 billion."
         )
         predictions["outcome"] = xarray.where(
             predictions["outcome"] > 10e9, 10e9, predictions["outcome"]
         )
-
+    # rename ged_sb to outcome
+    observed = observed.rename_vars({"ged_sb": "outcome"})
     crps = calculate_metrics(
         observed, predictions, metric="crps", aggregate_over="nothing"
     )
@@ -72,7 +75,7 @@ def evaluate_forecast(
     )
 
     if predictions.dims["member"] != expected_samples:
-        logging.warning(
+        print(
             f'Number of samples ({predictions.dims["member"]}) is not 1000. Using scipy.signal.resample to get {expected_samples} samples when calculating Ignorance Score.'
         )
         np.random.seed(284975)
@@ -92,7 +95,7 @@ def evaluate_forecast(
         ).to_dataset(dim="variable")
 
     if bool((predictions["outcome"] < 0).any()):
-        logging.warning(
+        print(
             f"Found negative predictions. These are censored at 0 before calculating Ignorance Score."
         )
         predictions["outcome"] = xarray.where(
@@ -116,9 +119,13 @@ def evaluate_forecast(
 def match_forecast_with_actuals(
     submission, actuals_folder, target: TargetType, window: str
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    print(f"Matching {submission} with {actuals_folder}")
     filter = pyarrow.compute.field("window") == window
+    print(f"Filtering on window: {window}")
     actuals = get_target_data(actuals_folder, target=target, filters=filter)
+    print(f"Got actuals")
     predictions = get_target_data(submission, target=target, filters=filter)
+    print(f"Got predictions")
 
     predictions.drop(columns=["window"], inplace=True)
     actuals.drop(columns=["window"], inplace=True)
@@ -158,16 +165,26 @@ def evaluate_submission(
     data_column : str
         The name of the data column. Default = "outcome"
     """
-
+    print(f"Evaluating {submission}")
     for target in targets:
         for window in windows:
+            print(f"Target: {target}, Window: {window}")
+            print(
+                list((submission).glob("**/*.parquet"))
+            )
+            print(any(
+                (submission).glob("**/*.parquet")
+            ))
             if any(
                 (submission / target).glob("**/*.parquet")
             ):  # test if there are prediction files in the target
+                print(f"Found .parquet files in {submission/target}. Evaluating.")
                 observed_df, pred_df = match_forecast_with_actuals(
                     submission, acutals, target, window
                 )
+                print(f"Matched {submission/target} with {acutals/target}/window={window}")
                 save_to = submission / "eval" / f"{target}" / f"window={window}"
+                print("Saving to", save_to)
                 evaluate_forecast(
                     forecast=pred_df,
                     actuals=observed_df,
@@ -178,6 +195,12 @@ def evaluate_submission(
                     bins=bins,
                     save_to=save_to,
                 )
+
+            else:
+                print(
+                    f"No .parquet files in {submission/target}. Skipping evaluation."
+                )
+            break
 
 
 def evaluate_all_submissions(
@@ -215,24 +238,24 @@ def evaluate_all_submissions(
 
     submissions = Path(submissions)
     submissions = list_submissions(submissions)
+    print("Found submissions:", submissions)
     acutals = Path(acutals)
 
     for submission in submissions:
-        try:
-            logging.info(f"Evaluating {submission.name}")
-            evaluate_submission(
-                submission,
-                acutals,
-                targets,
-                windows,
-                expected,
-                bins,
-                draw_column,
-                data_column,
-            )
-        except Exception as e:
-            logging.error(f"{str(e)}")
-
+        # try:
+        print(f"Evaluating {submission.name}")
+        evaluate_submission(
+            submission,
+            acutals,
+            targets,
+            windows,
+            expected,
+            bins,
+            draw_column,
+            data_column,
+        )
+        # except Exception as e:
+        #     logging.error(f"{str(e)}")
 
 def main():
     parser = argparse.ArgumentParser(
@@ -297,14 +320,15 @@ def main():
     expected = args.e
     targets = args.t
     windows = args.w
-    draw_column = args.sc
-    data_column = args.dc
+    draw_column = args.sc # must be draw
+    data_column = args.dc # must be outcome
     bins = args.ib
 
     evaluate_all_submissions(
-        submissions, acutals, targets, windows, expected, draw_column, data_column, bins
+        submissions=submissions, acutals=acutals, targets=targets, windows=windows, expected=expected, bins=bins, draw_column=draw_column, data_column=data_column
     )
 
 
 if __name__ == "__main__":
+    print("---- Running main ----\n")
     main()
