@@ -16,6 +16,8 @@ Untitled.ipynb
 *.csv
 *.pdf
 *.parquet
+.DS_Store
+submission/readme.txt
 
 .idea
 
