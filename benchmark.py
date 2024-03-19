@@ -1,5 +1,6 @@
 # Run this in Terminal (MacOS):
-# python3 benchmark.py --feature_folder /Documents/features --target pgm --year 2018 2019 2020 2021 --benchmark_name boot --month_lag 3 --save_folder_path /Documents/features
+# python3 benchmark.py --feature_folder ./prediction_competition_2023/submission --target cm --year 2018 2019 2020 2021 --benchmark_name boot --month_lag 3 --save_folder_path ./prediction_competition_2023/submission/features
+# python3 benchmark.py --feature_folder ./prediction_competition_2023/features --target cm --year 2018 2019 2020 2021 --benchmark_name boot --month_lag 3 --save_folder_path ./prediction_competition_2023/submission/features
 
 import argparse
 import pandas as pd

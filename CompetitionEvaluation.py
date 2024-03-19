@@ -162,6 +162,9 @@ def calculate_metrics(
 
     # Calculate average crps for each step (so across the other dimensions)
     if metric == "crps":
+        # drop the member dimension, as it is not needed for crps
+        # observed = observed.expand_dims({"member": 1000})
+        # observed= observed.expand_dims({"nothing": 1})
         ensemble = xs.crps_ensemble(observed, predictions, dim=aggregate_over)
     elif metric == "ign":
         ensemble = ensemble_ignorance_score_xskillscore(
@@ -193,6 +196,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="This calculates metrics for the ViEWS 2023 Forecast Competition",
         epilog="Example usage: python CompetitionEvaluation.py -o ./data/bm_cm_historical_values_2018.parquet -p ./data/bm_cm_ensemble_2018.parquet -m crps -ag month_id country_id",
+        # epilog="Example usage: python3 CompetitionEvaluation.py -o ./benchmarkmodel/cm_actuals_2018.parquet -p ./benchmarkmodel/bm_cm_bootstrap_expanded_2018.parquet -m crps -ag month_id country_id",
     )
     parser.add_argument(
         "-o",

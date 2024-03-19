@@ -216,6 +216,9 @@ def get_target_data(
 
     """
     submission = Path(submission)
+    print("get_target_data" )
+    print(submission)
+    print(submission / target)
     return read_parquet(submission / target, filters=filters)
 
 
