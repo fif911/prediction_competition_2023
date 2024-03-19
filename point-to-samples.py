@@ -45,7 +45,7 @@ def samples_from_point_predictions(parquet_file: str | os.PathLike, type: str, t
     else:
         raise ValueError(f'Unable to ascertain observation unit. Should be "cm" or "pgm", getting {target}.')
     
-
+    print("before explode")
     df = df.explode("outcome")
     df["draw"] = df.groupby(["month_id", unit]).cumcount()
     df = df.reset_index()
@@ -54,7 +54,7 @@ def samples_from_point_predictions(parquet_file: str | os.PathLike, type: str, t
     
 
     out_file_name: str = parquet_file.stem + f'_{type}-samples.parquet'
-
+    print("before write samples_from_point_predictions")
     write_path = parquet_file.parent.parent.parent.parent / "results" / f'{name}-{type}-samples' / target / window
     write_path.mkdir(exist_ok=True, parents=True)
     df.to_parquet(write_path / out_file_name)
@@ -73,7 +73,10 @@ def main() -> None:
     prediction_files = [f for f in prediction_files if not f.parent.parts[-1] == "eval"]
     prediction_files = [f for f in prediction_files if "__MACOSX" not in f.parts]
 
-    [samples_from_point_predictions(f, type = args.m) for f in prediction_files]
+    # [samples_from_point_predictions(f, type = args.m) for f in prediction_files]
+    for f in prediction_files:
+        samples_from_point_predictions(f, type = args.m)
+        break
 
 if __name__ == "__main__":
     main()
