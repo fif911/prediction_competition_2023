@@ -196,7 +196,7 @@ def is_parquet_in_target(submission: str | os.PathLike, target: TargetType) -> b
 
 
 def get_target_data(
-    submission: str | os.PathLike, target: TargetType, filters=None
+        submission: str | os.PathLike, target: TargetType, filters=None
 ) -> pd.DataFrame:
     """Reads folders with a "pgm" or "cm" sub-folder containing Apache Hive structured parquet-files.
 
@@ -216,7 +216,7 @@ def get_target_data(
 
     """
     submission = Path(submission)
-    print("get_target_data" )
+    print("get_target_data")
     print(submission)
     print(submission / target)
     return read_parquet(submission / target, filters=filters)
@@ -224,3 +224,36 @@ def get_target_data(
 
 def get_window_filters(window):
     pass
+
+
+import pandas as pd
+
+
+def aggregate_country_month_data(dyad_df):
+    """
+    Aggregates a dyad DataFrame by country and month, including specified shifted values for ged_sb.
+
+    Parameters:
+    - dyad_df: The input DataFrame containing dyadic data.
+    - a_ged_sb_shifted_name: The column name for shifted a_ged_sb values.
+    - b_ged_sb_shifted_name: The column name for shifted b_ged_sb values.
+
+    Returns:
+    - A DataFrame aggregated by month and country, including mean ged_sb and shifted ged_sb values.
+    """
+    # Step 1: Prepare separate DataFrames for each country role
+    df_a = dyad_df[['month_id', 'country_id_a', 'a_country_name', 'a_ged_sb_15_shifted', 'a_ged_sb_pred']].copy()
+    df_b = dyad_df[['month_id', 'country_id_b', 'b_country_name', 'b_ged_sb_15_shifted', 'b_ged_sb_pred']].copy()
+
+    # Step 2: Rename columns for consistency
+    df_a.rename(columns={'country_id_a': 'country_id', 'a_country_name': 'country_name',
+                         'a_ged_sb_15_shifted': 'ged_sb_actual', 'a_ged_sb_pred': 'ged_sb_pred'}, inplace=True)
+    df_b.rename(columns={'country_id_b': 'country_id', 'b_country_name': 'country_name',
+                         'b_ged_sb_15_shifted': 'ged_sb_actual', 'b_ged_sb_pred': 'ged_sb_pred'}, inplace=True)
+
+    # Step 3: Concatenate and group
+    combined_country_df = pd.concat([df_a, df_b], ignore_index=True)
+    aggregated_df = combined_country_df.groupby(['month_id', 'country_id', 'country_name']).agg(
+        {'ged_sb': 'mean', 'y_shifted': 'mean'}).reset_index()
+
+    return aggregated_df

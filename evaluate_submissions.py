@@ -239,7 +239,7 @@ def evaluate_all_submissions(
     submissions = Path(submissions)
     submissions = list_submissions(submissions)
     print("Found submissions:", submissions)
-    acutals = Path(acutals)
+    actuals = Path(acutals)
 
     for submission in submissions:
         # try:
