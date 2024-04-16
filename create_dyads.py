@@ -111,6 +111,9 @@ def sort_dyadic_columns(dyadic_df: pd.DataFrame, base_month: int = 4, end_month:
     return dyadic_df[new_order]
 
 
+MAX_YEAR_FOR_DIST = 2018  # because dataset is until 2020 exclusive. After we assume everything is the same as 2018
+
+
 def process_month_data(month, cm_features: pd.DataFrame, features_exclude, features_for_ratios,
                        majors: pd.DataFrame) -> pd.DataFrame:
     print("Processing month: ", month)
@@ -120,7 +123,8 @@ def process_month_data(month, cm_features: pd.DataFrame, features_exclude, featu
     countries = cm_features_month['country_id'].unique()
     date: str = cm_features_month['date'].values[0]
     year: int = cm_features_month['year'].values[0]
-    min_dist_double_year = min_dist[(min_dist['year'] == year) | (min_dist['year'] == year + 1)]
+    year_for_dist = min(year, MAX_YEAR_FOR_DIST)
+    min_dist_double_year = min_dist[(min_dist['year'] == year_for_dist) | (min_dist['year'] == year_for_dist + 1)]
     rivalries_until_year = rivalries[rivalries['start'] <= year]
 
     for i in range(len(countries)):
@@ -144,20 +148,23 @@ def process_month_data(month, cm_features: pd.DataFrame, features_exclude, featu
             country_name_i = data_i['gw_statename'].values[0]
             country_name_j = data_j['gw_statename'].values[0]
             if not country_name_i or not country_name_j:
+                # country_name_i = country_name_i or data_i['country'].values[0]
+                # country_name_j = country_name_j or data_j['country'].values[0]
                 raise ValueError(
-                    f"Country name not found for ccode {ccode_i} or {ccode_j}")
+                    f"Country name not found for ccode {ccode_i} or {ccode_j}. {country_name_i} - {country_name_j}")
 
             # populate min_dist between countries
             min_dist_search = (min_dist_double_year['ccode1'] == ccode_i) & (
                     min_dist_double_year['ccode2'] == ccode_j)
-            min_dist_ij = min_dist_double_year[min_dist_search & (min_dist_double_year['year'] == year)]
+            min_dist_ij = min_dist_double_year[min_dist_search & (min_dist_double_year['year'] == year_for_dist)]
             # if not found raise error
             if min_dist_ij.empty:
                 # fallback to next year
-                min_dist_ij = min_dist_double_year[min_dist_search & (min_dist_double_year['year'] == year + 1)]
+                min_dist_ij = min_dist_double_year[
+                    min_dist_search & (min_dist_double_year['year'] == year_for_dist + 1)]
                 if min_dist_ij.empty:
                     raise ValueError(
-                        f"Country name not found for ccode {ccode_i} or {ccode_j} on {year}")
+                        f"Min distance not found {ccode_i} or {ccode_j} on {year}. {country_name_i} - {country_name_j}")
 
             # Check if rivalry exists between the two countries
             were_riv, riv_data = get_rivalry_data(ccode_i, ccode_j, year, rivalries_until_year)
@@ -227,24 +234,29 @@ def process_month_data(month, cm_features: pd.DataFrame, features_exclude, featu
 
 
 if __name__ == '__main__':
-    total_months = len(cm_features['month_id'].unique())
-    print(f"Processing {total_months} months...")
-
     # TEST CODE
-    # monthly_dyadic_df: pd.DataFrame = process_month_data(130, cm_features, features_exclude, features_for_ratios,
+    # monthly_dyadic_df: pd.DataFrame = process_month_data(481, cm_features, features_exclude, features_for_ratios,
     #                                                      majors)
     # pass
     # PRODUCTION CODE
     # Create the directory if it does not exist
+    start_month = 473
     output_dir = 'data_dyad_monthly v0.6'
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
+
+    # subset months
+    working_months = cm_features['month_id'].unique()
+    working_months = working_months[working_months >= start_month]
+
+    total_months = len(working_months)
+    print(f"Processing {total_months} months...")
 
     with ProcessPoolExecutor(max_workers=8) as executor:
         future_to_month = {
             executor.submit(process_month_data, month, cm_features, features_exclude, features_for_ratios,
                             majors): month
-            for month in cm_features['month_id'].unique()
+            for month in working_months
         }
 
         for future in as_completed(future_to_month):

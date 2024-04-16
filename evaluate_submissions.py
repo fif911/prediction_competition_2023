@@ -102,6 +102,7 @@ def evaluate_forecast(
             predictions["outcome"] < 0, 0, predictions["outcome"]
         )
 
+    print(f"Smaller then 0 {bool((predictions['outcome'] < 0).any())}")
     ign = calculate_metrics(
         observed, predictions, metric="ign", bins=bins, aggregate_over="nothing"
     )
@@ -113,7 +114,7 @@ def evaluate_forecast(
         dfs[metric].rename(columns={metric: "value"}, inplace=True)
         metric_dir = save_to / f"metric={metric}"
         metric_dir.mkdir(exist_ok=True, parents=True)
-        dfs[metric].to_parquet(metric_dir / f"{metric}.parquet")
+        dfs[metric].to_csv(metric_dir / f"{metric}.csv")
 
 
 def match_forecast_with_actuals(

@@ -174,6 +174,8 @@ def read_parquet(data_path: str | os.PathLike, filters=None) -> pd.DataFrame:
     """
 
     table = pq.ParquetDataset(data_path, filters=filters)
+    print(f"filters: {filters}")
+    print(table.schema)
     return table.read().to_pandas()
 
 
@@ -219,6 +221,11 @@ def get_target_data(
     print("get_target_data")
     print(submission)
     print(submission / target)
+    # if target.endswith(".csv"):
+    #     return pd.read_csv(submission / target)
+    # elif target.endswith(".parquet"):
+    #     return read_parquet(submission / target, filters=filters)
+    # else:
     return read_parquet(submission / target, filters=filters)
 
 

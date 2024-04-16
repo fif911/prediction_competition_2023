@@ -5,34 +5,34 @@ dyad_df = pd.read_parquet('../data_dyad_monthly/dyad_df.parquet')
 # get only dyads from Jan 2016 to Jan 2019
 # to date
 dyad_df['date'] = pd.to_datetime(dyad_df['date'])
-dyad_df = dyad_df[
-    (dyad_df['date'] >= pd.Timestamp(year=2012, month=1, day=1))]  # cut everything before 2015
+# dyad_df = dyad_df[
+#     (dyad_df['date'] >= pd.Timestamp(year=2012, month=1, day=1))]  # cut everything before 2015
 
 # dyad_df = dyad_df[
 #     (dyad_df['date'] >= pd.Timestamp(year=2014, month=7, day=1)) &
 #     (dyad_df['date'] <= pd.Timestamp(year=2019, month=1, day=1))]
-dyad_df.info()
-print("Shifting GED-SB variables by 15 months...")
-
-dyad_df.sort_values(by=['country_id_a', 'country_id_b', 'month_id'], inplace=True)
-
-
-# Function to shift the 'ged_sb' variable backwards by 15 months within each group
-def shift_ged_sb(group):
-    # Assuming 'ged_sb' is recorded per country in the dyad, adjust if you have a single 'ged_sb' variable
-    group['a_ged_sb_15_shifted'] = group['a_ged_sb'].shift(-15)  # 3 months gap + 12 months prediction
-    group['b_ged_sb_15_shifted'] = group['b_ged_sb'].shift(-15)  # 3 months gap + 12 months prediction
-    return group
+# dyad_df.info()
+# print("Shifting GED-SB variables by 15 months...")
+#
+# dyad_df.sort_values(by=['country_id_a', 'country_id_b', 'month_id'], inplace=True)
+#
+#
+# # Function to shift the 'ged_sb' variable backwards by 15 months within each group
+# def shift_ged_sb(group):
+#     # Assuming 'ged_sb' is recorded per country in the dyad, adjust if you have a single 'ged_sb' variable
+#     group['a_ged_sb_15_shifted'] = group['a_ged_sb'].shift(-15)  # 3 months gap + 12 months prediction
+#     group['b_ged_sb_15_shifted'] = group['b_ged_sb'].shift(-15)  # 3 months gap + 12 months prediction
+#     return group
 
 
 # Apply the function to each dyad group
-dyad_df = dyad_df.groupby(['country_id_a', 'country_id_b']).apply(shift_ged_sb)
-dyad_df.reset_index(drop=True, inplace=True)
+# dyad_df = dyad_df.groupby(['country_id_a', 'country_id_b']).apply(shift_ged_sb)
+# dyad_df.reset_index(drop=True, inplace=True)
 # cm_features['y_shifted'] = cm_features.groupby('country_id')['ged_sb'].shift(-15)  # 3 months gap + 12 months prediction
 # show na for y_shifted
 # cm_features[cm_features['y_shifted'].isna()]
 # drop na
-dyad_df = dyad_df.dropna()
+# dyad_df = dyad_df.dropna()
 # dyad_df
 
 print("One-hot encoding country identifiers...")
@@ -43,7 +43,7 @@ dyad_df = pd.concat([dyad_df, country_a_and_b_ids], axis=1)
 # dyad_df
 
 print("Cutting DF")
-prediction_year = 2019
+prediction_year = 2018  # Jan 2018 to Jan 2019
 cut_year = prediction_year - 2  # 2016
 
 features_to_oct = pd.Timestamp(year=cut_year, month=10, day=1)  # 2016-Oct-01
