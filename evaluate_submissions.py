@@ -11,6 +11,7 @@ import argparse
 import pandas as pd
 import pyarrow
 
+
 # import logging
 #
 # logging.getLogger(__name__)
@@ -20,26 +21,26 @@ import pyarrow
 
 
 def evaluate_forecast(
-    forecast: pd.DataFrame,
-    actuals: pd.DataFrame,
-    target: TargetType,
-    expected_samples: int,
-    save_to: str | os.PathLike,
-    draw_column: str = "draw",
-    data_column: str = "outcome",
-    bins: list[float] = [
-        0,
-        0.5,
-        2.5,
-        5.5,
-        10.5,
-        25.5,
-        50.5,
-        100.5,
-        250.5,
-        500.5,
-        1000.5,
-    ],
+        forecast: pd.DataFrame,
+        actuals: pd.DataFrame,
+        target: TargetType,
+        expected_samples: int,
+        save_to: str | os.PathLike,
+        draw_column: str = "draw",
+        data_column: str = "outcome",
+        bins: list[float] = [
+            0,
+            0.5,
+            2.5,
+            5.5,
+            10.5,
+            25.5,
+            50.5,
+            100.5,
+            250.5,
+            500.5,
+            1000.5,
+        ],
 ) -> None:
     if target == "pgm":
         unit = "priogrid_gid"
@@ -52,7 +53,6 @@ def evaluate_forecast(
     observed, predictions = structure_data(
         actuals, forecast, draw_column_name=draw_column, data_column_name=data_column
     )
-
 
     if bool((predictions["outcome"] > 10e9).any()):
         print(
@@ -118,7 +118,7 @@ def evaluate_forecast(
 
 
 def match_forecast_with_actuals(
-    submission, actuals_folder, target: TargetType, window: str
+        submission, actuals_folder, target: TargetType, window: str
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     print(f"Matching {submission} with {actuals_folder}")
     filter = pyarrow.compute.field("window") == window
@@ -135,14 +135,14 @@ def match_forecast_with_actuals(
 
 
 def evaluate_submission(
-    submission: str | os.PathLike,
-    acutals: str | os.PathLike,
-    targets: list[TargetType],
-    windows: list[str],
-    expected: int,
-    bins: list[float],
-    draw_column: str = "draw",
-    data_column: str = "outcome",
+        submission: str | os.PathLike,
+        acutals: str | os.PathLike,
+        targets: list[TargetType],
+        windows: list[str],
+        expected: int,
+        bins: list[float],
+        draw_column: str = "draw",
+        data_column: str = "outcome",
 ) -> None:
     """Loops over all targets and windows in a submission folder, match them with the correct test dataset, and estimates evaluation metrics.
     Stores evaluation data as .parquet files in {submission}/eval/{target}/window={window}/.
@@ -167,23 +167,24 @@ def evaluate_submission(
         The name of the data column. Default = "outcome"
     """
     print(f"Evaluating {submission}")
+    # list all folders in submission
+    all_folders = list(submission.glob("cm/*"))
     for target in targets:
         for window in windows:
+            folder_exists = any("window=" + window in str(folder) for folder in all_folders)
+            if not folder_exists:
+                print(f"Window {window} not found in {submission}. Skipping evaluation.")
+                continue
             print(f"Target: {target}, Window: {window}")
-            print(
-                list((submission).glob("**/*.parquet"))
-            )
-            print(any(
-                (submission).glob("**/*.parquet")
-            ))
+
             if any(
-                (submission / target).glob("**/*.parquet")
+                    (submission / target).glob("**/*.parquet")
             ):  # test if there are prediction files in the target
-                print(f"Found .parquet files in {submission/target}. Evaluating.")
+                print(f"Found .parquet files in {submission / target}. Evaluating.")
                 observed_df, pred_df = match_forecast_with_actuals(
                     submission, acutals, target, window
                 )
-                print(f"Matched {submission/target} with {acutals/target}/window={window}")
+                print(f"Matched {submission / target} with {acutals / target}/window={window}")
                 save_to = submission / "eval" / f"{target}" / f"window={window}"
                 print("Saving to", save_to)
                 evaluate_forecast(
@@ -199,20 +200,19 @@ def evaluate_submission(
 
             else:
                 print(
-                    f"No .parquet files in {submission/target}. Skipping evaluation."
+                    f"No .parquet files in {submission / target}. Skipping evaluation."
                 )
-            break
 
 
 def evaluate_all_submissions(
-    submissions: str | os.PathLike,
-    acutals: str | os.PathLike,
-    targets: list[TargetType],
-    windows: list[str],
-    expected: int,
-    bins: list[float],
-    draw_column: str = "draw",
-    data_column: str = "outcome",
+        submissions: str | os.PathLike,
+        acutals: str | os.PathLike,
+        targets: list[TargetType],
+        windows: list[str],
+        expected: int,
+        bins: list[float],
+        draw_column: str = "draw",
+        data_column: str = "outcome",
 ) -> None:
     """Loops over all submissions in the submissions folder, match them with the correct test dataset, and estimates evaluation metrics.
     Stores evaluation data as .parquet files in {submissions}/{submission_name}/eval/{target}/window={window}/.
@@ -257,6 +257,7 @@ def evaluate_all_submissions(
         )
         # except Exception as e:
         #     logging.error(f"{str(e)}")
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -321,12 +322,13 @@ def main():
     expected = args.e
     targets = args.t
     windows = args.w
-    draw_column = args.sc # must be draw
-    data_column = args.dc # must be outcome
+    draw_column = args.sc  # must be draw
+    data_column = args.dc  # must be outcome
     bins = args.ib
 
     evaluate_all_submissions(
-        submissions=submissions, acutals=acutals, targets=targets, windows=windows, expected=expected, bins=bins, draw_column=draw_column, data_column=data_column
+        submissions=submissions, acutals=acutals, targets=targets, windows=windows, expected=expected, bins=bins,
+        draw_column=draw_column, data_column=data_column
     )
 
 
