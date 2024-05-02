@@ -314,6 +314,7 @@ def main():
         help='Set a binning scheme for the ignorance score. List or integer (nbins). E.g., "--ib 0 0.5 1 5 10 100 1000". None also allowed.',
         default=[0, 0.5, 2.5, 5.5, 10.5, 25.5, 50.5, 100.5, 250.5, 500.5, 1000.5],
     )
+    # TODO: Add option to ignore missing countries. Hardcode IDs for countries that were dropped.
 
     args = parser.parse_args()
 
