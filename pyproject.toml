@@ -32,6 +32,7 @@ plotly = "^5.20.0"
 torch = "^2.2.1"
 shap = "^0.45.0"
 ngboost = "^0.5.1"
+crps = "^2.0.4"
 
 [build-system]
 requires = ["poetry-core"]

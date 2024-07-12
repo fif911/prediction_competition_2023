@@ -645,6 +645,20 @@ test = ["Pillow", "contourpy[test-no-images]", "matplotlib"]
 test-no-images = ["pytest", "pytest-cov", "wurlitzer"]
 
 [[package]]
+name = "crps"
+version = "2.0.4"
+description = "A package to compute the Continuous Ranked Probability Score (CRPS), the Fair-CRPS, and the Adjusted-CRPS. Read the documentation at https://github.com/gouthamnaveen/CRPS"
+optional = false
+python-versions = "*"
+files = [
+    {file = "CRPS-2.0.4-py3-none-any.whl", hash = "sha256:2a1fd666702753ff9e1b951bcd958f9c5046eafc023b77df0bdf60539932ba0f"},
+    {file = "CRPS-2.0.4.tar.gz", hash = "sha256:f0d24da83e4e5a0bb9e84927f068e525613579001bcccb76274e112f13511229"},
+]
+
+[package.dependencies]
+numpy = "*"
+
+[[package]]
 name = "cycler"
 version = "0.12.0"
 description = "Composable style cycles"
@@ -4380,4 +4394,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.10"
-content-hash = "4eff0d108e9e3870b5226564ab916f66f6b46812bf28998cbfe942c7c96318e1"
+content-hash = "885d88e7473c67f170d95839798bb0de8b303225601bf1f37330b930a90a46e8"
